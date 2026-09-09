@@ -1,10 +1,10 @@
-# v2.3.0-arc-dia.1
+# v2.3.0-arc-dia.2
 
 Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
 ## Included artifacts
 
-- `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip`: clearly branded personal build
+- `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2.zip`: clearly branded personal build
   with one-tab handoff, reusable disconnect/reconnect, and credential filtering
   that blocks nested CDP and cross-tab `Target` protocol tunnels.
 - `OpenClaw-Browser-Upstream-2.3.0.zip`: untouched, byte-exact upstream runtime
@@ -13,7 +13,7 @@ Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
 ## Verified
 
-- Extension suite: `611 passed`, `1` upstream opt-in Chromium bootstrap skip.
+- Extension suite: `613 passed`, `1` upstream opt-in Chromium bootstrap skip.
 - Full OpenClaw production build on Node `26.7.0`.
 - Full real-browser E2E of the Sean build with isolated Arc `1.163.0` and Dia
   `1.47.1` direct-Gateway pairing.
@@ -34,3 +34,11 @@ future **OpenClaw Browser — Clawdia** build can coexist without ambiguity.
 
 Screenshot and one below-fold Dia click remain unclaimed because the automated
 proof session had no capturable desktop geometry.
+
+## Fixes since `.1`
+
+- permits Playwright's session-scoped current-tab identity query while keeping
+  explicit cross-target queries blocked;
+- refreshes the popup while the replacement relay connection authenticates;
+- preserves the selected grant when Arc publishes a replacement tab ID shortly
+  after the one-tab handoff.

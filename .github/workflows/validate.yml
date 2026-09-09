@@ -18,7 +18,7 @@ jobs:
         run: |
           set -euo pipefail
           jq -e '.manifest_version == 3 and .name == "OpenClaw" and .version == "2.3.0" and .background.service_worker == "background.js"' packages/upstream/manifest.json >/dev/null
-          jq -e '.manifest_version == 3 and .name == "OpenClaw Browser — Sean" and .short_name == "Sean Browser" and .version == "2.3.0.1" and .background.service_worker == "background.js"' packages/sean/manifest.json >/dev/null
+          jq -e '.manifest_version == 3 and .name == "OpenClaw Browser — Sean" and .short_name == "Sean Browser" and .version == "2.3.0.2" and .background.service_worker == "background.js"' packages/sean/manifest.json >/dev/null
           for package_dir in packages/upstream packages/sean; do
             test -f "$package_dir/background.js"
             test -f "$package_dir/options.html"
@@ -32,13 +32,13 @@ jobs:
         run: |
           set -euo pipefail
           unzip -tq OpenClaw-Browser-Upstream-2.3.0.zip
-          unzip -tq OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip
+          unzip -tq OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2.zip
           ! unzip -Z1 OpenClaw-Browser-Upstream-2.3.0.zip | grep -E '(^|/)__MACOSX/|(^|/)[.]DS_Store$'
-          ! unzip -Z1 OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip | grep -E '(^|/)__MACOSX/|(^|/)[.]DS_Store$'
+          ! unzip -Z1 OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2.zip | grep -E '(^|/)__MACOSX/|(^|/)[.]DS_Store$'
           sha256sum -c SHA256SUMS
           archive_tmp="$(mktemp -d)"
           trap 'rm -rf "$archive_tmp"' EXIT
           unzip -q OpenClaw-Browser-Upstream-2.3.0.zip -d "$archive_tmp"
-          unzip -q OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip -d "$archive_tmp"
+          unzip -q OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2.zip -d "$archive_tmp"
           diff -qr packages/upstream "$archive_tmp/OpenClaw-Browser-Upstream-2.3.0"
-          diff -qr packages/sean "$archive_tmp/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1"
+          diff -qr packages/sean "$archive_tmp/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2"
