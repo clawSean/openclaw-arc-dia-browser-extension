@@ -4,12 +4,17 @@
 [![Chrome Extension](https://img.shields.io/badge/Manifest-V3-blue)](packages/upstream/manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Browser-extension builds derived from OpenClaw `v2026.9.3`. The personalized
+Browser-extension builds derived from OpenClaw `v2026.9.3`. The exact source
+repositories and commits are pinned in [`release-source.json`](release-source.json),
+and CI rebuilds both extension packages from those commits before comparing
+them byte-for-byte with this repository. The personalized
 Sean build's `2.3.0.1` baseline received the full real-browser Arc and Dia E2E
-proof described below. Release `2.3.0.2` fixed the first real remote-Mac
-handoff failures. Candidate `2.3.0.3` makes the Settings page report live,
-truthful pairing, relay, and access states; exact remote confirmation remains
-pending. The untouched upstream build is included as a byte-exact comparison
+proof described below. Release `2.3.0.2` addressed the causes found during the
+first real remote-Mac handoff. Candidate `2.3.0.3` makes the Settings page
+report live, truthful pairing, relay, and access states. Exact remote
+confirmation remains pending because the current proof Gateway has a mismatched
+generated `dist` chunk; the extension itself reached the intended manual-WSS
+route. The untouched upstream build is included as a byte-exact comparison
 artifact.
 
 ## Which build should I use?
@@ -51,8 +56,9 @@ users who want upstream behavior without Sean-specific controls.
 
 ## Install Sean's build
 
-1. Download `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip` from the
-   [`v2.3.0-arc-dia.3` prerelease](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/tag/v2.3.0-arc-dia.3).
+1. Download
+   [`OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip`](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.3/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip)
+   from the `v2.3.0-arc-dia.3` release.
 2. Unzip it.
 3. Open `arc://extensions` in Arc or `chrome://extensions` in Dia.
 4. Enable **Developer mode**.
@@ -99,9 +105,14 @@ passed direct navigation. Candidate `2.3.0.3` passed its focused regressions,
 the complete extension suite, and a fresh disposable Dia Settings proof. That
 proof showed Connecting becoming Connected in about one second, then held
 Unavailable across later polls with zero false Connected claims. Exact
-remote-Mac confirmation is the final gate. Arc `.3` UI proof remains unclaimed
-because Arc ignored the disposable profile flag, so testing stopped before
-touching the personal profile.
+remote-Mac confirmation is the final gate. A real Settings-page manual-WSS
+attempt verified the exact published `.3` ZIP, disabled automatic local setup,
+and selected the intended Tailscale `/browser/extension` route. It then moved
+from Connecting to Unavailable because that live Gateway deployment referenced
+a missing generated `dist` chunk (`ERR_MODULE_NOT_FOUND`). This is recorded as a
+Gateway deployment blocker, not an extension pass. Arc `.3` UI proof remains
+unclaimed because Arc ignored the disposable profile flag, so testing stopped
+before touching the personal profile.
 
 Arc hangs on `chrome.tabGroups.query`. The Sean build's explicit tab registry
 avoids that API. Screenshot and one below-fold Dia click were not claimed in the
@@ -109,9 +120,14 @@ no-display proof session because the browser had no usable window geometry.
 
 ## Verification
 
-- Extension suite: **635 passed**, 1 upstream opt-in Chromium bootstrap test
-  skipped.
-- Full OpenClaw production build: **passed** on Node `24.15.0`.
+- Exact pinned-source extension suite on supported Node `26.7.0`: **635
+  passed**, 1 upstream opt-in Chromium bootstrap test skipped.
+- Baseline full OpenClaw production build: **passed** on supported Node
+  `26.7.0`.
+- Release CI checks out the exact pinned source commits, installs from the
+  frozen lockfile on supported Node `24.16.0`, reruns the complete extension
+  suite, rebuilds both runtime packages, and compares them byte-for-byte with
+  the committed package directories.
 - Published packages and Git history: secret-scanned before release.
 - Release ZIPs: tested and accompanied by SHA-256 checksums.
 
@@ -128,6 +144,13 @@ ordinary page automation.
 - Base commit: `1391f7cd2d40ab5bbcf2f5f831d3a64f520e72d7`
 - Sean source branch: [`clawSean/openclaw@personal/browser-extension-compat-v2026.9.3`](https://github.com/clawSean/openclaw/tree/personal/browser-extension-compat-v2026.9.3)
 - Sean source commit: [`276d71266bc`](https://github.com/clawSean/openclaw/commit/276d71266bc)
+- Machine-readable release pin: [`release-source.json`](release-source.json)
+
+Direct release assets:
+
+- [`OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip`](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.3/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip)
+- [`OpenClaw-Browser-Upstream-2.3.0.zip`](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.3/OpenClaw-Browser-Upstream-2.3.0.zip)
+- [`SHA256SUMS`](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.3/SHA256SUMS)
 
 No relay URL, pairing credential, browser profile, personal browsing data, or
 machine-specific configuration is included.

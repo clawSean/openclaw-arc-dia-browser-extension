@@ -9,10 +9,28 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  artifacts:
+    name: Validate committed artifacts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate pinned source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '
+            .releaseTag == "v2.3.0-arc-dia.3" and
+            .nodeVersion == "24.16.0" and
+            .source.repository == "clawSean/openclaw" and
+            (.source.commit | test("^[0-9a-f]{40}$")) and
+            .source.extensionPath == "extensions/browser/chrome-extension" and
+            .source.packagePath == "packages/sean" and
+            .upstream.repository == "openclaw/openclaw" and
+            .upstream.tag == "v2026.9.3" and
+            (.upstream.commit | test("^[0-9a-f]{40}$")) and
+            .upstream.extensionPath == "extensions/browser/chrome-extension" and
+            .upstream.packagePath == "packages/upstream"
+          ' release-source.json >/dev/null
       - name: Validate manifests and JavaScript syntax
         shell: bash
         run: |
@@ -43,3 +61,81 @@ jobs:
           unzip -q OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip -d "$archive_tmp"
           diff -qr packages/upstream "$archive_tmp/OpenClaw-Browser-Upstream-2.3.0"
           diff -qr packages/sean "$archive_tmp/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3"
+
+  source:
+    name: Rebuild and test pinned source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release artifacts
+        uses: actions/checkout@v4
+
+      - name: Read pinned provenance
+        id: provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_repository="$(jq -er '.source.repository' release-source.json)"
+          source_commit="$(jq -er '.source.commit' release-source.json)"
+          upstream_repository="$(jq -er '.upstream.repository' release-source.json)"
+          upstream_commit="$(jq -er '.upstream.commit' release-source.json)"
+          node_version="$(jq -er '.nodeVersion' release-source.json)"
+          test "$source_repository" = "clawSean/openclaw"
+          test "$upstream_repository" = "openclaw/openclaw"
+          [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$upstream_commit" =~ ^[0-9a-f]{40}$ ]]
+          printf 'source_repository=%s\n' "$source_repository" >> "$GITHUB_OUTPUT"
+          printf 'source_commit=%s\n' "$source_commit" >> "$GITHUB_OUTPUT"
+          printf 'upstream_repository=%s\n' "$upstream_repository" >> "$GITHUB_OUTPUT"
+          printf 'upstream_commit=%s\n' "$upstream_commit" >> "$GITHUB_OUTPUT"
+          printf 'node_version=%s\n' "$node_version" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact Sean source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.provenance.outputs.source_repository }}
+          ref: ${{ steps.provenance.outputs.source_commit }}
+          path: source/sean
+          persist-credentials: false
+
+      - name: Check out exact upstream source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.provenance.outputs.upstream_repository }}
+          ref: ${{ steps.provenance.outputs.upstream_commit }}
+          path: source/upstream
+          persist-credentials: false
+
+      - name: Set up supported Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.provenance.outputs.node_version }}
+
+      - name: Install exact source dependencies
+        working-directory: source/sean
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          package_manager="$(node -p "require('./package.json').packageManager")"
+          corepack prepare "$package_manager" --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Run the complete browser-extension suite
+        working-directory: source/sean
+        shell: bash
+        run: node scripts/run-vitest.mjs extensions/browser/chrome-extension
+
+      - name: Rebuild and compare both extension packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          sean_output="$RUNNER_TEMP/rebuilt-sean"
+          upstream_output="$RUNNER_TEMP/rebuilt-upstream"
+          OPENCLAW_CHROME_EXT_OUT_DIR="$sean_output" \
+            node source/sean/extensions/browser/scripts/copy-chrome-extension.mjs
+          OPENCLAW_CHROME_EXT_OUT_DIR="$upstream_output" \
+            node source/upstream/extensions/browser/scripts/copy-chrome-extension.mjs
+          diff -qr packages/sean "$sean_output"
+          diff -qr packages/upstream "$upstream_output"

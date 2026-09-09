@@ -1,0 +1,17 @@
+{
+  "releaseTag": "v2.3.0-arc-dia.3",
+  "nodeVersion": "24.16.0",
+  "source": {
+    "repository": "clawSean/openclaw",
+    "commit": "276d71266bcf588225d23713deddddec5d53b6d5",
+    "extensionPath": "extensions/browser/chrome-extension",
+    "packagePath": "packages/sean"
+  },
+  "upstream": {
+    "repository": "openclaw/openclaw",
+    "tag": "v2026.9.3",
+    "commit": "1391f7cd2d40ab5bbcf2f5f831d3a64f520e72d7",
+    "extensionPath": "extensions/browser/chrome-extension",
+    "packagePath": "packages/upstream"
+  }
+}
