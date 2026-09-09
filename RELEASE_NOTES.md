@@ -1,24 +1,36 @@
-# v2.2.0-arc-dia.1
+# v2.3.0-arc-dia.1
 
-Initial Arc and Dia compatibility release, derived from OpenClaw `v2026.8.2`.
+Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
 ## Included artifacts
 
-- `openclaw-browser-extension-2.2.0-arc-dia.zip`: native-faithful build.
-- `openclaw-browser-extension-2.2.0-hardened-arc-dia.zip`: personal hardened build.
+- `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip`: clearly branded personal build
+  with one-tab handoff, reusable disconnect/reconnect, and credential filtering
+  that blocks nested CDP and cross-tab `Target` protocol tunnels.
+- `OpenClaw-Browser-Upstream-2.3.0.zip`: untouched, byte-exact upstream runtime
+  files included as a comparison artifact.
 - `SHA256SUMS`: artifact checksums.
 
 ## Verified
 
-- Manifest V3 extension loading in isolated Arc and Dia profiles.
-- Browser Relay Authentication v2 through a Tailscale HTTPS/WSS route.
-- Required browser APIs, including `chrome.debugger` and `chrome.tabGroups`.
-- Existing-tab publication and semantic snapshots in both browsers.
-- 539 native extension tests and 541 hardened extension tests.
-- Focused OpenClaw runtime fixes: 293 tests.
+- Extension suite: `611 passed`, `1` upstream opt-in Chromium bootstrap skip.
+- Full OpenClaw production build on Node `26.7.0`.
+- Full real-browser E2E of the Sean build with isolated Arc `1.163.0` and Dia
+  `1.47.1` direct-Gateway pairing.
+- Semantic snapshot and typing in both browsers.
+- Two shared tabs reduced to one intended tab in Sean's inventory in both
+  browsers without closing the other browser tab.
+- Disconnect closed the relay, detached automation, and published zero tabs
+  while retaining pairing.
+- Reconnect restored exactly the selected tab without another pairing code.
+- Arc select/click and Dia direct navigation.
+- Secret scans of package files and complete Git history.
 
-## Known limitation
+## Deployment note
 
-The current OpenClaw `2026.8.2` Gateway needs post-release upstream runtime
-fixes for dependable Playwright click/type actions against extension-backed
-tabs. Those runtime fixes are not embedded in either extension ZIP.
+OpenClaw `2026.9.3` or newer is required for dependable extension-backed browser
+actions. The personalized extension is named **OpenClaw Browser — Sean** so a
+future **OpenClaw Browser — Clawdia** build can coexist without ambiguity.
+
+Screenshot and one below-fold Dia click remain unclaimed because the automated
+proof session had no capturable desktop geometry.

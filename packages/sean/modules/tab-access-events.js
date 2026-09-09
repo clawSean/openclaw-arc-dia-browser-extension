@@ -13,6 +13,7 @@ export function registerTabAccessEvents({
   detachDebugger,
   pauseTab,
   removeTabFromOpenClawGroup,
+  replaceTabInSelectedScope,
   runAccessMutation,
 }) {
   let groupEventRevision = 0;
@@ -73,7 +74,12 @@ export function registerTabAccessEvents({
     void (async () => {
       await accessReady;
       scheduleTabsSync();
+      // Keep this direct (rather than behind runAccessMutation): forgetTab()
+      // must finish its second retirement before a fresh attach can capture a
+      // newer epoch for a reused/simulated tab identity. The selected-scope
+      // controller already serializes its own storage mutations.
       await policy.forgetTab(tabId).catch(() => undefined);
+      await removeTabFromOpenClawGroup(tabId).catch(() => undefined);
     })();
   });
 
@@ -83,16 +89,23 @@ export function registerTabAccessEvents({
     policy.retireTab(removedTabId);
     const detaching = [detachDebugger(removedTabId), detachDebugger(addedTabId)];
     scheduleTabsSync();
-    void (async () => {
+    void runAccessMutation(async () => {
       try {
         await accessReady;
-        await policy.replaceTab(addedTabId, removedTabId);
+        const replacements = await Promise.allSettled([
+          policy.replaceTab(addedTabId, removedTabId),
+          replaceTabInSelectedScope(addedTabId, removedTabId),
+        ]);
         await Promise.allSettled(detaching);
+        const failure = replacements.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") {
+          throw failure.reason;
+        }
       } finally {
         policy.endRevocation(revocation);
         scheduleTabsSync();
       }
-    })().catch(() => undefined);
+    }).catch(() => undefined);
   });
 
   chromeApi.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -130,16 +143,13 @@ export function registerTabAccessEvents({
     })();
   });
 
-  const onGroupChanged = (group) => {
+  const onGroupChanged = (group, removed = false) => {
     const eventRevision = ++groupEventRevision;
     scheduleTabsSync();
-    policy.invalidateDocumentGroup(group);
+    policy.invalidateGroup(group, removed);
     if (policy.mode !== ACCESS_MODE_SELECTED) {
       return;
     }
-    // Group title/removal changes mutate the selected-mode ACL. Retire every
-    // attachment epoch synchronously before any readiness or Chrome lookup.
-    policy.invalidateAll(group);
     const generations = [...attachments]
       .filter(([, record]) => !record.retired)
       .map(([tabId, generation]) => [tabId, generation, policy.capture(tabId)]);
@@ -190,5 +200,5 @@ export function registerTabAccessEvents({
     });
   };
   chromeApi.tabGroups.onUpdated.addListener(onGroupChanged);
-  chromeApi.tabGroups.onRemoved.addListener((group) => onGroupChanged(group));
+  chromeApi.tabGroups.onRemoved.addListener((group) => onGroupChanged(group, true));
 }

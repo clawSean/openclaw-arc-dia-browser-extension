@@ -1,85 +1,108 @@
-# OpenClaw Arc + Dia Browser Extension
+# OpenClaw Browser for Arc + Dia
 
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.8.2-crimson)](https://github.com/openclaw/openclaw)
-[![Chrome Extension](https://img.shields.io/badge/Manifest-V3-blue)](packages/native-faithful/manifest.json)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.9.3-crimson)](https://github.com/openclaw/openclaw)
+[![Chrome Extension](https://img.shields.io/badge/Manifest-V3-blue)](packages/upstream/manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Arc- and Dia-tested builds of OpenClaw's browser extension `2.2.0`, derived
-from OpenClaw `v2026.8.2`.
+Browser-extension builds derived from OpenClaw `v2026.9.3`. The personalized
+Sean build received the full real-browser Arc and Dia E2E proof described below;
+the untouched upstream build is included as a byte-exact comparison artifact.
 
-## Builds
+## Which build should I use?
 
-### Native-faithful
+### Sean Arc + Dia
 
-[`packages/native-faithful`](packages/native-faithful)
+[`packages/sean`](packages/sean) — extension name **OpenClaw Browser — Sean**,
+version `2.3.0.1`.
 
-Preserves the upstream product, UX, access model, and security behavior. It
-includes upstream lifecycle repairs for stale tab-group events. Use this build
-when exact OpenClaw behavior matters most.
+This is the personal build. It keeps normal OpenClaw automation and adds:
 
-### Personal hardened
+- **Share only this tab with Sean** — atomically removes every other tab from
+  Sean's shared inventory without closing those browser tabs;
+- **Disconnect Sean (keep pairing)** — closes the relay, detaches automation,
+  and publishes zero tabs while retaining pairing;
+- **Reconnect Sean** — restores the relay without another pairing code;
+- a narrow credential firewall for direct cookie-jar and raw cookie/auth protocol
+  extraction, including nested CDP and cross-tab `Target` protocol tunnels.
 
-[`packages/personal-hardened`](packages/personal-hardened)
+Pairing survives Disconnect. Explicit tab grants do not survive a full browser
+quit, so reopening Arc or Dia starts with zero shared tabs until one is selected
+again.
 
-Adds a narrow credential firewall while preserving normal browser automation:
+The Sean name appears in the extension list, popup, Settings page, and ZIP. A
+future Clawdia build should use **OpenClaw Browser — Clawdia** and its own pairing,
+making the two installations easy to distinguish.
 
-- blocks direct CDP cookie-jar reads;
-- filters cookie, authorization, proxy-authorization, and set-cookie material
-  from relayed protocol results and events;
-- does not block ordinary navigation, clicks, typing, snapshots, screenshots,
-  tab operations, page JavaScript, or web storage.
+### Untouched upstream
 
-This reduces blatant credential extraction. It is not a complete secret
-isolation boundary: page-visible account data, non-HttpOnly cookies, form
-values, DOM content, and web-storage values remain accessible to normal page
-automation.
+[`packages/upstream`](packages/upstream) — exact loadable OpenClaw `2.3.0`
+runtime files from the `v2026.9.3` tag. It is included for comparison and for
+users who want upstream behavior without Sean-specific controls.
 
-## Install
+## Install Sean's build
 
-1. Download the desired ZIP from the latest GitHub release and unzip it.
-2. Open `arc://extensions` in Arc or `chrome://extensions` in Dia.
-3. Enable **Developer mode**.
-4. Choose **Load unpacked** and select the unzipped extension directory.
-5. Generate a current OpenClaw browser-extension pairing value using the
-   official OpenClaw CLI, then paste it into the extension's Settings page.
+1. Download `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1.zip` from the latest release.
+2. Unzip it.
+3. Open `arc://extensions` in Arc or `chrome://extensions` in Dia.
+4. Enable **Developer mode**.
+5. Choose **Load unpacked** and select the unzipped
+   `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.1` folder.
+6. Open **Sean Browser Access → Settings** and use a current pairing value from
+   the official OpenClaw browser-extension pairing flow.
 
-Treat pairing material as a secret. Never put it in a shell command, URL,
+Treat pairing material as a secret. Do not put it in a shell command, URL,
 issue, screenshot, or repository.
 
-## Compatibility evidence
+## Runtime requirement
 
-Tested on macOS with:
+Use OpenClaw `2026.9.3` or newer. Older Gateways have the target-identity bug
+that previously broke extension-backed snapshot and action sequences in Arc and
+Dia.
 
-- Arc `1.161.0` / Chromium `151.0.7922.170`
-- Dia `1.46.0` / Chromium `152.0.7977.65`
-- OpenClaw `2026.8.2`
-- authenticated Browser Relay v2 over Tailscale HTTPS/WSS
+Manual direct-Gateway pairing is the dependable cross-browser setup because the
+automatic native-host installer remains Chrome-oriented. A remote deployment
+should use the normal authenticated Tailscale WSS endpoint.
 
-Both browsers loaded the Manifest V3 worker, exposed all required extension
-APIs including `tabGroups`, paired through the relay, published existing tabs,
-and produced semantic snapshots.
+## Compatibility proof
 
-The native-host installer currently registers Chrome-family roots but not Arc
-or Dia. Manual remote pairing is therefore the dependable cross-browser path.
+Tested with disposable profiles on macOS:
 
-## Test results
+- Arc `1.163.0`;
+- Dia `1.47.1`;
+- an isolated exact OpenClaw `2026.9.3` Gateway;
+- the direct Browser Relay Authentication v2 Gateway route.
 
-- Native extension suite: **539 passed**, 1 opt-in Chromium E2E skipped.
-- Hardened extension suite: **541 passed**, 1 opt-in Chromium E2E skipped.
-- Focused post-release runtime repair suite: **293 passed**, 3 screenshot tests
-  skipped because the matching Playwright Chromium binary was not installed.
-- Production OpenClaw build: **passed**.
+The Sean build passed worker load, pairing, tab inventory, semantic snapshot,
+typing, two-tabs-to-one handoff, disconnect to zero tabs, and reconnect without
+re-pairing in both browsers. The handoff removed the other tab from Sean's
+inventory without closing it. Arc also passed select and click; Dia passed
+direct navigation.
 
-The remaining live click/type proof requires activating the accompanying
-post-`2026.8.2` OpenClaw Gateway runtime fixes. The extension artifacts
-themselves do not replace or restart a Gateway.
+Arc hangs on `chrome.tabGroups.query`. The Sean build's explicit tab registry
+avoids that API. Screenshot and one below-fold Dia click were not claimed in the
+no-display proof session because the browser had no usable window geometry.
+
+## Verification
+
+- Extension suite: **611 passed**, 1 upstream opt-in Chromium bootstrap test
+  skipped.
+- Full OpenClaw production build: **passed** on Node `26.7.0`.
+- Published packages and Git history: secret-scanned before release.
+- Release ZIPs: tested and accompanied by SHA-256 checksums.
+
+The credential firewall blocks direct cookie/auth reads, nested CDP message
+tunnels, and cross-tab `Target` protocol tunneling; it also strips nested target
+messages from relayed events. It reduces blatant extraction risk but is not a
+complete secret-isolation boundary. Page-visible account data, non-HttpOnly
+cookies, form values, DOM content, and web-storage values remain available to
+ordinary page automation.
 
 ## Provenance
 
-- Base: [`openclaw/openclaw@v2026.8.2`](https://github.com/openclaw/openclaw/tree/v2026.8.2)
-- Base commit: `0965053fe6b9341776df147a6934b7485c60b5ca`
-- Extension lifecycle fix: upstream commit `9d10dcb5d39`
-- Runtime companion fixes: upstream commits `d52acf702b4` and `fe784239d80`
+- Base: [`openclaw/openclaw@v2026.9.3`](https://github.com/openclaw/openclaw/tree/v2026.9.3)
+- Base commit: `1391f7cd2d40ab5bbcf2f5f831d3a64f520e72d7`
+- Sean source branch: [`clawSean/openclaw@personal/browser-extension-compat-v2026.9.3`](https://github.com/clawSean/openclaw/tree/personal/browser-extension-compat-v2026.9.3)
+- Sean source commit: [`8f7aa9b3c933c58ae054665e721ca1c4e85f8029`](https://github.com/clawSean/openclaw/commit/8f7aa9b3c933c58ae054665e721ca1c4e85f8029)
 
 No relay URL, pairing credential, browser profile, personal browsing data, or
 machine-specific configuration is included.

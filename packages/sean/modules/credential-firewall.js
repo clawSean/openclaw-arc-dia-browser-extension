@@ -8,6 +8,7 @@ const BLOCKED_COOKIE_READS = new Set([
   "Page.getCookies",
   "Storage.getCookies",
 ]);
+const ALLOWED_TARGET_COMMANDS = new Set(["Target.detachFromTarget", "Target.setAutoAttach"]);
 const SENSITIVE_HEADERS = new Set([
   "authorization",
   "cookie",
@@ -25,10 +26,21 @@ const COOKIE_ARRAYS = new Set([
   "exemptedcookies",
 ]);
 const COOKIE_VALUES = new Set(["cookie", "cookieline", "rawcookieline"]);
+const SENSITIVE_DOMAINS = new Set(["Audits", "CacheStorage", "Fetch", "Network", "Storage"]);
 
 export function authorizeCdpCommand(method, params = {}) {
   if (BLOCKED_COOKIE_READS.has(method) || /\.(?:getAllCookies|getCookies)$/.test(method)) {
     throw new Error(`${method} is blocked by the personal credential firewall.`);
+  }
+  // Browser-scoped Target operations are synthesized by the Gateway relay. A
+  // physical Target command here is session-scoped inside a shared tab; letting
+  // it enumerate or attach arbitrary target ids would escape the selected-tab
+  // ledger. Keep only the two commands used by the flattened relay lifecycle.
+  if (method.startsWith("Target.") && !ALLOWED_TARGET_COMMANDS.has(method)) {
+    throw new Error(`${method} is blocked by the personal credential firewall.`);
+  }
+  if (method === "Target.setAutoAttach" && params?.flatten !== true) {
+    throw new Error(`${method} requires a flattened Target session.`);
   }
   return { method, params };
 }
@@ -77,7 +89,7 @@ function sanitizeValue(value, seen = new WeakMap()) {
 
 function shouldSanitize(method) {
   const domain = typeof method === "string" ? method.split(".", 1)[0] : "";
-  return new Set(["Audits", "Fetch", "Network", "Storage"]).has(domain);
+  return SENSITIVE_DOMAINS.has(domain);
 }
 
 export function sanitizeCdpResult(method, result) {
@@ -85,5 +97,12 @@ export function sanitizeCdpResult(method, result) {
 }
 
 export function sanitizeCdpEvent(method, params) {
+  if (method === "Target.receivedMessageFromTarget") {
+    const clean = sanitizeValue(params ?? {});
+    if (clean && typeof clean === "object" && !Array.isArray(clean)) {
+      delete clean.message;
+    }
+    return clean;
+  }
   return shouldSanitize(method) ? sanitizeValue(params ?? {}) : (params ?? {});
 }
