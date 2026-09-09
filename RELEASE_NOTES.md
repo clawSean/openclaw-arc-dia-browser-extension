@@ -2,6 +2,9 @@
 
 Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
+**Prerelease:** automated gates pass; exact confirmation on the remote Arc Mac
+remains before promotion to final.
+
 ## Included artifacts
 
 - `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.2.zip`: clearly branded personal build
@@ -15,8 +18,8 @@ Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
 - Extension suite: `613 passed`, `1` upstream opt-in Chromium bootstrap skip.
 - Full OpenClaw production build on Node `26.7.0`.
-- Full real-browser E2E of the Sean build with isolated Arc `1.163.0` and Dia
-  `1.47.1` direct-Gateway pairing.
+- Full real-browser E2E of the `2.3.0.1` baseline with isolated Arc `1.163.0`
+  and Dia `1.47.1` direct-Gateway pairing.
 - Semantic snapshot and typing in both browsers.
 - Two shared tabs reduced to one intended tab in Sean's inventory in both
   browsers without closing the other browser tab.
@@ -25,6 +28,9 @@ Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 - Reconnect restored exactly the selected tab without another pairing code.
 - Arc select/click and Dia direct navigation.
 - Secret scans of package files and complete Git history.
+
+The `.2` delta has focused regression coverage and passed the complete extension
+suite. Its exact remote-Mac share/disconnect/reconnect proof remains pending.
 
 ## Deployment note
 

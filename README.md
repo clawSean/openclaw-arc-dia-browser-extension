@@ -5,8 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Browser-extension builds derived from OpenClaw `v2026.9.3`. The personalized
-Sean build received the full real-browser Arc and Dia E2E proof described below;
-the untouched upstream build is included as a byte-exact comparison artifact.
+Sean build's `2.3.0.1` baseline received the full real-browser Arc and Dia E2E
+proof described below. Candidate `2.3.0.2` adds narrowly tested fixes from the
+first real remote-Mac install; exact remote confirmation remains pending. The
+untouched upstream build is included as a byte-exact comparison artifact.
 
 ## Which build should I use?
 
@@ -53,6 +55,14 @@ users who want upstream behavior without Sean-specific controls.
 6. Open **Sean Browser Access → Settings** and use a current pairing value from
    the official OpenClaw browser-extension pairing flow.
 
+### Upgrade without re-pairing
+
+Arc derives an unpacked extension's identity from its folder path. To preserve
+pairing, replace the files inside the existing extension folder with the new
+build, keep that folder path unchanged, and click **Reload** on
+`arc://extensions`. Removing the old extension or loading the new version from a
+different folder is safe, but creates a new identity and requires fresh pairing.
+
 Treat pairing material as a secret. Do not put it in a shell command, URL,
 issue, screenshot, or repository.
 
@@ -75,11 +85,12 @@ Tested with disposable profiles on macOS:
 - an isolated exact OpenClaw `2026.9.3` Gateway;
 - the direct Browser Relay Authentication v2 Gateway route.
 
-The Sean build passed worker load, pairing, tab inventory, semantic snapshot,
-typing, two-tabs-to-one handoff, disconnect to zero tabs, and reconnect without
-re-pairing in both browsers. The handoff removed the other tab from Sean's
-inventory without closing it. Arc also passed select and click; Dia passed
-direct navigation.
+The `2.3.0.1` baseline passed worker load, pairing, tab inventory, semantic
+snapshot, typing, two-tabs-to-one handoff, disconnect to zero tabs, and reconnect
+without re-pairing in both browsers. The handoff removed the other tab from
+Sean's inventory without closing it. Arc also passed select and click; Dia
+passed direct navigation. Candidate `2.3.0.2` passed its focused regressions and
+the complete extension suite; exact remote-Mac confirmation is the final gate.
 
 Arc hangs on `chrome.tabGroups.query`. The Sean build's explicit tab registry
 avoids that API. Screenshot and one below-fold Dia click were not claimed in the
