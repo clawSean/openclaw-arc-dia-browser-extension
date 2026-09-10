@@ -2,10 +2,10 @@
 
 Arc and Dia compatibility release derived from OpenClaw `v2026.9.3`.
 
-**Prerelease:** automated gates and a fresh disposable Dia Settings proof pass.
-A real manual-WSS attempt reached the intended route, but the live proof Gateway
-referenced a missing generated `dist` chunk, so exact remote confirmation remains
-required before promotion to final.
+**Final release:** automated gates, a fresh disposable Dia Settings proof, and
+an exact-public-ZIP manual-WSS control cycle passed. The live proof used Dia
+`1.47.1` with OpenClaw `2026.9.3 (0a7b700)` through the Tailscale
+`/browser/extension` route.
 
 ## Included artifacts
 
@@ -30,15 +30,14 @@ required before promotion to final.
   while retaining pairing.
 - Reconnect restored exactly the selected tab without another pairing code.
 - Arc select/click and Dia direct navigation.
-- Fresh disposable Dia `1.47.1` Settings proof on exact `2.3.0.3` bytes:
-  Connecting reached Connected in about one second, then Unavailable held
-  across later polls with zero false Connected claims.
-- A real Settings-page manual-WSS attempt verified the published Sean ZIP hash,
-  kept automatic local setup disabled, and selected the intended Tailscale
-  `/browser/extension` route. The proof Gateway then returned
-  `ERR_MODULE_NOT_FOUND` for a mismatched generated `dist` chunk, so the status
-  correctly moved from Connecting to Unavailable. This is not counted as an E2E
-  pass.
+- Separate negative-state Dia `1.47.1` Settings proof on exact `2.3.0.3` bytes:
+  Connecting reached Connected in about one second; after relay loss,
+  Unavailable held across later polls with zero false Connected claims.
+- Exact published `2.3.0.3` Sean ZIP manual-WSS E2E on disposable Dia `1.47.1`
+  with OpenClaw `2026.9.3 (0a7b700)`: Not configured → Connecting → Connected,
+  pairing-field clearing, exactly one shared tab, semantic snapshot,
+  typing/evaluation, disconnect to zero, reconnect without another pairing code,
+  and final cleanup to zero.
 - Secret scans of package files and complete Git history.
 - Release CI checks out Sean source commit
   [`276d71266bc`](https://github.com/clawSean/openclaw/commit/276d71266bc)
@@ -49,9 +48,9 @@ required before promotion to final.
   the committed artifacts. The canonical pins live in
   [`release-source.json`](release-source.json).
 
-The `.3` delta has focused regression coverage and passed the complete extension
-suite. Its exact remote-Mac Settings and share/disconnect/reconnect proof remains
-pending until the proof Gateway deployment is repaired.
+The `.3` delta has focused regression coverage, passed the complete extension
+suite, and passed the exact-artifact manual-WSS Settings and
+share/snapshot/action/disconnect/reconnect proof.
 
 ## Deployment note
 

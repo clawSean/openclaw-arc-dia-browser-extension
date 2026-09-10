@@ -10,12 +10,11 @@ and CI rebuilds both extension packages from those commits before comparing
 them byte-for-byte with this repository. The personalized
 Sean build's `2.3.0.1` baseline received the full real-browser Arc and Dia E2E
 proof described below. Release `2.3.0.2` addressed the causes found during the
-first real remote-Mac handoff. Candidate `2.3.0.3` makes the Settings page
-report live, truthful pairing, relay, and access states. Exact remote
-confirmation remains pending because the current proof Gateway has a mismatched
-generated `dist` chunk; the extension itself reached the intended manual-WSS
-route. The untouched upstream build is included as a byte-exact comparison
-artifact.
+first real remote-Mac handoff. Release `2.3.0.3` makes the Settings page report
+live, truthful pairing, relay, and access states. The exact public `2.3.0.3` ZIP
+passed a disposable Dia manual-WSS control cycle through the live Tailscale
+route on OpenClaw `2026.9.3 (0a7b700)`, and `.3` is the current final release.
+The untouched upstream build is included as a byte-exact comparison artifact.
 
 ## Which build should I use?
 
@@ -101,18 +100,16 @@ The `2.3.0.1` baseline passed worker load, pairing, tab inventory, semantic
 snapshot, typing, two-tabs-to-one handoff, disconnect to zero tabs, and reconnect
 without re-pairing in both browsers. The handoff removed the other tab from
 Sean's inventory without closing it. Arc also passed select and click; Dia
-passed direct navigation. Candidate `2.3.0.3` passed its focused regressions,
-the complete extension suite, and a fresh disposable Dia Settings proof. That
-proof showed Connecting becoming Connected in about one second, then held
-Unavailable across later polls with zero false Connected claims. Exact
-remote-Mac confirmation is the final gate. A real Settings-page manual-WSS
-attempt verified the exact published `.3` ZIP, disabled automatic local setup,
-and selected the intended Tailscale `/browser/extension` route. It then moved
-from Connecting to Unavailable because that live Gateway deployment referenced
-a missing generated `dist` chunk (`ERR_MODULE_NOT_FOUND`). This is recorded as a
-Gateway deployment blocker, not an extension pass. Arc `.3` UI proof remains
-unclaimed because Arc ignored the disposable profile flag, so testing stopped
-before touching the personal profile.
+passed direct navigation. Release `2.3.0.3` passed its focused regressions, the
+complete extension suite, a fresh disposable Dia Settings proof, and an
+exact-public-ZIP manual-WSS E2E on Dia `1.47.1` against OpenClaw `2026.9.3
+(0a7b700)`. The final route proof covered Not configured → Connecting →
+Connected, credential-field clearing, one-tab publication, semantic snapshot,
+typing/evaluation, disconnect to zero tabs, reconnect without another pairing
+code, and final cleanup back to zero. The previous generated-`dist` mismatch was
+cleared before this proof. Arc `.3` UI proof remains unclaimed because Arc
+ignored the disposable profile flag, so testing stopped before touching the
+personal profile.
 
 Arc hangs on `chrome.tabGroups.query`. The Sean build's explicit tab registry
 avoids that API. Screenshot and one below-fold Dia click were not claimed in the
