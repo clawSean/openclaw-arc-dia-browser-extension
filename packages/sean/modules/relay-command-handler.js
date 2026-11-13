@@ -14,6 +14,7 @@ export function createRelayCommandHandler({
   requireAccessibleTab,
   requireNavigatedTab,
   navigateTab,
+  compatibility,
 }) {
   return async (message) => {
     const { seq } = message;
@@ -71,7 +72,16 @@ export function createRelayCommandHandler({
             authorized.params?.url === "about:blank";
           const result = controlledBlank
             ? await navigateTab(message.tabId, epoch, authorized.params, isCurrent, sendCommand)
-            : await sendCommand(authorized.method, authorized.params);
+            : compatibility
+              ? await compatibility.run(
+                  message.tabId,
+                  message.sessionId,
+                  authorized.method,
+                  sendCommand,
+                  () => sendCommand(authorized.method, authorized.params),
+                  () => requireTab(message.tabId, epoch),
+                )
+              : await sendCommand(authorized.method, authorized.params);
           assertAttachment();
           await requireTab(
             message.tabId,

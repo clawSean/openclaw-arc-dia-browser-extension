@@ -1,3 +1,5 @@
+import { createOnePasswordCompatibility } from "./modules/one-password-compat.js";
+const compatibility = createOnePasswordCompatibility(() => tabAccessPolicy.mode === "selected");
 import {
   createNativeBootstrapController,
   discardRetiredCopilotState,
@@ -67,7 +69,14 @@ const tabAccessPolicy = createTabAccessPolicy({
   addSelectedTab: (tabId, created) => sharedTabs.add(tabId, created),
   getGroupColor: async () => (await getConfig()).groupColor,
 });
-const relayDebugger = createRelayDebugger({ policy: tabAccessPolicy, requireAutomationAllowed });
+const relayDebugger = createRelayDebugger({
+  policy: tabAccessPolicy,
+  requireAutomationAllowed,
+  beforeDetach: (tabId, target) =>
+    compatibility.stop(tabId, (method, params) =>
+      chrome.debugger.sendCommand(target, method, params),
+    ),
+});
 const { attachments, detach: detachDebugger } = relayDebugger;
 const tabAccessReady = (async () => {
   const retiredState = await prepareRetiredCopilotState();
@@ -420,6 +429,7 @@ async function connectRelay(isConnectionAllowed = () => true) {
       ws.readyState === WebSocket.OPEN,
   );
   const handleRelayCommand = createRelayCommandHandler({
+    compatibility,
     send: (message) => send(message, ws),
     isCurrent: owner.isCurrent,
     attachDebugger: owner.attach,
@@ -587,6 +597,7 @@ async function startAutomation() {
 // ---------------------------------------------------------------------------
 
 const handlePopupMessage = createPopupMessageHandler({
+  compatibility,
   pairingConfigStore,
   policy: tabAccessPolicy,
   accessReady: tabAccessReady,
@@ -686,6 +697,9 @@ nativeBootstrap = createNativeBootstrapController({
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => handlePopupMessage(msg, reply));
 
 registerTabAccessEvents({
+  endCompatibility: (tabId) => {
+    void compatibility.stop(tabId).catch(() => {});
+  },
   accessReady: tabAccessReady,
   policy: tabAccessPolicy,
   attachments,

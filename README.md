@@ -16,12 +16,56 @@ passed a disposable Dia manual-WSS control cycle through the live Tailscale
 route on OpenClaw `2026.9.3 (0a7b700)`, and `.3` is the current final release.
 The untouched upstream build is included as a byte-exact comparison artifact.
 
+## 2.3.0.4 compatibility prerelease
+
+[Download Sean 2.3.0.4](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.4/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.4.zip)
+from the [prerelease](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/tag/v2.3.0-arc-dia.4).
+Stable `.3` remains available; this release does not replace it.
+
+The Sean build adds an **opt-in 1Password compatibility** button for an
+explicitly shared tab in **Selected tabs** mode. Enable it before Sean opens
+or focuses a form. From the next automated action, 1Password suggestions on
+that page remain paused **between actions too**, until disabled or unshared.
+Use the same popup control to resume suggestions before manual credential
+entry. Root-page navigation resets the opt-in; enable it again only where wanted.
+
+This candidate uses 1Password's documented `data-1p-ignore` cooperation hook.
+It does not read password-manager content, add permissions, disable extensions,
+or cancel the site's form. It cannot dismiss an already-open protected menu:
+dismiss that menu or reload before deliberately trying again. Cross-frame
+forms are not covered. The page's exact previous attribute is restored unless
+the page changed it itself. A 60-second page-owned lease, renewed every 10
+seconds while the grant and attachment remain valid, cleans up after a crashed
+worker or lost debugger. Browser throttling can delay that safety timer.
+
+This is separate from upstream relay PR
+[#198009](https://github.com/openclaw/openclaw/pull/198009). Installing this add-on
+alone does **not** install that Gateway-side blocked-tab diagnostic fix.
+The prevention proposal is issue
+[#198004](https://github.com/openclaw/openclaw/issues/198004), not another PR.
+
+The exact `.4` package passed an isolated real OpenClaw relay test on Chrome
+153.0.8010.12: synchronous modal autofocus, a modal created after a 250ms delay,
+typing/readback through the relay, explicit-disable restoration, re-enable,
+and disconnect restoration. No unexpected debugger detaches occurred. The
+fixture used a synthetic protected-extension injector, **not the actual
+1Password extension**. Actual 1Password and Arc/Dia validation for `.4` remains
+pending; the older `.3` proof below does not establish it.
+
+The revised extension suite passed 648 tests with one upstream opt-in Chromium
+test skipped. A subsequent 44-test access suite includes a stalled-cleanup
+regression proving Disconnect revokes access before cleanup completes. Review
+found delayed revocation and stale-lease windows; both were fixed with tests.
+An earlier command-duration design failed the delayed-modal proof and was
+replaced before this prerelease. No production Gateway or personal browser
+installation was changed during validation.
+
 ## Which build should I use?
 
 ### Sean Arc + Dia
 
 [`packages/sean`](packages/sean) — extension name **OpenClaw Browser — Sean**,
-version `2.3.0.3`.
+version `2.3.0.4` (prerelease).
 
 This is the personal build. It keeps normal OpenClaw automation and adds:
 
@@ -53,7 +97,7 @@ making the two installations easy to distinguish.
 runtime files from the `v2026.9.3` tag. It is included for comparison and for
 users who want upstream behavior without Sean-specific controls.
 
-## Install Sean's build
+## Install the stable `.3` build
 
 1. Download
    [`OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip`](https://github.com/clawSean/openclaw-arc-dia-browser-extension/releases/download/v2.3.0-arc-dia.3/OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3.zip)
@@ -65,6 +109,14 @@ users who want upstream behavior without Sean-specific controls.
    `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.3` folder.
 6. Open **Sean Browser Access → Settings** and use a current pairing value from
    the official OpenClaw browser-extension pairing flow.
+
+### Install or upgrade to the `.4` prerelease
+
+Download the `.4` ZIP linked above and unpack it. Follow the same Load unpacked
+steps as `.3`, selecting the `OpenClaw-Browser-Sean-Arc-Dia-2.3.0.4` folder.
+For an existing installation, follow the identity-preserving upgrade below.
+Then share one tab, open the popup, and explicitly enable 1Password
+compatibility before the next automated action.
 
 ### Upgrade without re-pairing
 
